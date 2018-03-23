@@ -15,13 +15,9 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.SeekBar;
 import android.widget.Toast;
 
-import com.crashlytics.android.Crashlytics;
 import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
 import com.firebase.geofire.GeoQuery;
@@ -40,12 +36,20 @@ import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBar;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Random;
+
+import it.aguzzo.androidgeofirebase.model.Favourite;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks,
@@ -66,10 +70,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private static int FASTEST_INTERVAL = 3000;
     private static int DISPLACEMENT = 10;
 
-    DatabaseReference ref;
+    DatabaseReference refMyLocation;
+    DatabaseReference refMyFavourites;
     GeoFire geoFire;
     Marker mCurrent;
     VerticalSeekBar mSeekbar;
+    Map<String, Favourite> mapMyFavourites;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,8 +86,37 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-        ref = FirebaseDatabase.getInstance().getReference("MyLocation");
-        geoFire = new GeoFire(ref);
+        mapMyFavourites = new HashMap<>();
+
+        mapMyFavourites.put("casa", new Favourite("casa",
+                                            new LatLng(41.928936, 12.524968),
+                                 -16711936, 0x2200FF00));
+
+        mapMyFavourites.put("lavoro", new Favourite("lavoro",
+                new LatLng(41.904039, 12.491666),
+                -16776961, 0x220000FF));
+
+/*
+        refMyFavourites = FirebaseDatabase.getInstance().getReference("MyFavourites");
+        refMyFavourites.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+
+                //ciclo la lista JSON ritornata dal database, trasformandola in una List<LatLng>
+                for(DataSnapshot myFavouritesSnapshot : dataSnapshot.getChildren()){
+                    listMyFavourites.add(new Favourite(myFavouritesSnapshot.getKey() , new LatLng(Double.valueOf(myFavouritesSnapshot.child("lat").getValue().toString()), Double.valueOf(myFavouritesSnapshot.child("long").getValue().toString()))     ));
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.w("EDMTDEV", "loadMyFavourites:onCancelled", databaseError.toException());
+            }
+        });
+*/
+
+        refMyLocation = FirebaseDatabase.getInstance().getReference("MyLocation");
+        geoFire = new GeoFire(refMyLocation);
 
         mSeekbar = (VerticalSeekBar) findViewById(R.id.verticalSeekBar);
         mSeekbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -120,7 +155,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 
             }
         }
-
     }
 
     @Override
@@ -150,21 +184,21 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                 //Update to Firebase
                 geoFire.setLocation("You", new GeoLocation(latitude, longitude),
-                        new GeoFire.CompletionListener() {
-                            @Override
-                            public void onComplete(String key, DatabaseError error) {
-                                //Add Marker
-                                if(mCurrent != null){
-                                    mCurrent.remove();
-                                }
-                                mCurrent = mMap.addMarker(new MarkerOptions()
-                                                    .position(new LatLng(latitude, longitude))
-                                                    .title("You"));
-                                //Move Camera to this position
-                                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(latitude, longitude), 12.0f));
+                    new GeoFire.CompletionListener() {
+                        @Override
+                        public void onComplete(String key, DatabaseError error) {
+                            //Add Marker
+                            if(mCurrent != null){
+                                mCurrent.remove();
                             }
-                        });
-
+                            mCurrent = mMap.addMarker(new MarkerOptions()
+                                                .position(new LatLng(latitude, longitude))
+                                                .title("You"));
+                            //Move Camera to this position
+                            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(latitude, longitude), 12.0f));
+                        }
+                    }
+                );
 
                 Log.d("EDMTDEV", String.format("Your location was changed : %f / %f", latitude, longitude));
             }
@@ -211,33 +245,33 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
-        //Create Dangerous area
-        LatLng dangerous_area = new LatLng(41.904039, 12.491666);
-        mMap.addCircle(new CircleOptions()
-                .center(dangerous_area)
-                .radius(500)
-                .strokeColor(Color.BLUE)
-                .fillColor(0x220000FF)
-                .strokeWidth(5.0f)
-        );
+        for(Map.Entry<String, Favourite> favourite : mapMyFavourites.entrySet()){
+            mMap.addCircle(new CircleOptions()
+                    .center(favourite.getValue().getCoordinates())
+                    .radius(500)
+                    .strokeColor(favourite.getValue().getStrokeColor())
+                    .fillColor(favourite.getValue().getFillColor())
+                    .strokeWidth(5.0f)
+            );
+        }
 
-        //Add GeoQuery here
-        //o.5f => 500m
-        GeoQuery geoQuery = geoFire.queryAtLocation(new GeoLocation(dangerous_area.latitude, dangerous_area.longitude), 0.5f);
-        geoQuery.addGeoQueryEventListener(new GeoQueryEventListener() {
+        //Add GeoQueryLavoro here
+        //0.5f => 500m
+        GeoQuery geoQueryLavoro = geoFire.queryAtLocation(new GeoLocation(mapMyFavourites.get("lavoro").getCoordinates().latitude, mapMyFavourites.get("lavoro").getCoordinates().longitude), 0.5f);
+        geoQueryLavoro.addGeoQueryEventListener(new GeoQueryEventListener() {
               @Override
               public void onKeyEntered(String key, GeoLocation location) {
-                  sendNotification("EDMTDEV", String.format("%s entered the dangerous area", key));
+                  sendNotification("EDMTDEV", String.format("%s entrato nella zona lavoro", key));
               }
 
               @Override
               public void onKeyExited(String key) {
-                  sendNotification("EDMTDEV", String.format("%s are no longer in the dangerous area", key));
+                  sendNotification("EDMTDEV", String.format("%s uscito dalla zona lavoro", key));
               }
 
               @Override
               public void onKeyMoved(String key, GeoLocation location) {
-                  Log.d("MOVE", String.format("%s moved within the dangerous area [%f/%f]", key, location.latitude, location.longitude));
+                  Log.d("MOVE", String.format("%s sei ancora nella zona lavoro [%f/%f]", key, location.latitude, location.longitude));
               }
 
               @Override
@@ -250,6 +284,37 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                   Log.e("ERROR", error.toString());
               }
           }
+        );
+
+        //Add GeoQueryLavoro here
+        //0.5f => 500m
+        GeoQuery geoQueryCasa = geoFire.queryAtLocation(new GeoLocation(mapMyFavourites.get("casa").getCoordinates().latitude, mapMyFavourites.get("casa").getCoordinates().longitude), 0.5f);
+        geoQueryCasa.addGeoQueryEventListener(new GeoQueryEventListener() {
+            @Override
+            public void onKeyEntered(String key, GeoLocation location) {
+                sendNotification("EDMTDEV", String.format("%s entrato nella zona casa", key));
+            }
+
+            @Override
+            public void onKeyExited(String key) {
+                sendNotification("EDMTDEV", String.format("%s uscito dalla zona casa", key));
+            }
+
+            @Override
+            public void onKeyMoved(String key, GeoLocation location) {
+                Log.d("MOVE", String.format("%s sei ancora nella zona casa [%f/%f]", key, location.latitude, location.longitude));
+            }
+
+            @Override
+            public void onGeoQueryReady() {
+
+            }
+
+            @Override
+            public void onGeoQueryError(DatabaseError error) {
+                Log.e("ERROR", error.toString());
+            }
+        }
         );
     }
 
