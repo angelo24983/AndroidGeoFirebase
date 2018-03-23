@@ -91,7 +91,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         refMyFavourites = FirebaseDatabase.getInstance().getReference("MyFavourites");
         geoFireMyFavourites = new GeoFire(refMyFavourites);
 
-        initializeMyFavourites();
+        //initializeMyFavourites();
         setUpLocation();
     }
 
@@ -236,8 +236,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-        geoFireMyFavourites.getLocation("lavoro", new MyLocationCallback(geoFireMyLocation, "lavoro", this));
-        geoFireMyFavourites.getLocation("casa", new MyLocationCallback(geoFireMyLocation, "lavoro", this));
+        geoFireMyFavourites.getLocation("lavoro", new MyLocationCallback(geoFireMyLocation, "lavoro", Color.BLUE, 0x220000FF, this, mMap));
+        geoFireMyFavourites.getLocation("casa", new MyLocationCallback(geoFireMyLocation, "casa", Color.GREEN, 0x2200FF00, this, mMap));
     }
 
     @Override
