@@ -189,6 +189,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             mCurrent = mMap.addMarker(new MarkerOptions()
                                                 .position(new LatLng(latitude, longitude))
                                                 .title("You"));
+
                             //Move Camera to this position
                             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(latitude, longitude), 12.0f));
                         }

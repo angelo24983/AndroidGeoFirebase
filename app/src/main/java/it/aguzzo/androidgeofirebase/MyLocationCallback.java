@@ -7,8 +7,10 @@ import com.firebase.geofire.GeoLocation;
 import com.firebase.geofire.GeoQuery;
 import com.firebase.geofire.LocationCallback;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.database.DatabaseError;
 
 /**
@@ -48,6 +50,12 @@ public class MyLocationCallback implements LocationCallback {
                 .fillColor(fillColor)
                 .strokeWidth(5.0f)
         );
+
+        map.addMarker(new MarkerOptions()
+                .position(new LatLng(location.latitude, location.longitude))
+                .title(myFavouriteType)
+                .alpha(0.0F)
+                .snippet("sono angelo"));
 
         //Add GeoQueryLavoro here
         //0.5f => 500m
