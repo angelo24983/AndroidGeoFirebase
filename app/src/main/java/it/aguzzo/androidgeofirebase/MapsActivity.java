@@ -4,7 +4,6 @@ import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationManager;
 import android.provider.Settings;
@@ -103,13 +102,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         refMyFavourites = FirebaseDatabase.getInstance().getReference("MyFavourites");
         geoFireMyFavourites = new GeoFire(refMyFavourites);
 
+        refMyFavouritesData = FirebaseDatabase.getInstance().getReference("MyFavouritesData");
+
         //initializeMyFavourites();
         setUpLocation();
     }
 
     private void initializeMyFavourites() {
 
-        refMyFavouritesData = FirebaseDatabase.getInstance().getReference("MyFavouritesData");
+
 
         Map<String, Favourite> favourites = new HashMap<>();
         favourites.put("casa", new Favourite("casa", "questa è la mia casa"));
@@ -307,8 +308,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-        geoFireMyFavourites.getLocation("lavoro", new MyLocationCallback(geoFireMyLocation, "lavoro", BitmapDescriptorFactory.HUE_BLUE, this, mMap));
-        geoFireMyFavourites.getLocation("casa", new MyLocationCallback(geoFireMyLocation, "casa", BitmapDescriptorFactory.HUE_GREEN, this, mMap));
+        geoFireMyFavourites.getLocation("lavoro", new MyLocationCallback(geoFireMyLocation, refMyFavouritesData, "lavoro", BitmapDescriptorFactory.HUE_BLUE, this, mMap));
+        geoFireMyFavourites.getLocation("casa", new MyLocationCallback(geoFireMyLocation, refMyFavouritesData, "casa", BitmapDescriptorFactory.HUE_GREEN, this, mMap));
     }
 
     @Override
