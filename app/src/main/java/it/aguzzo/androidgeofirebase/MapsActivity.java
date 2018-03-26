@@ -34,10 +34,15 @@ import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBar;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks,
@@ -60,6 +65,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     DatabaseReference refMyLocation;
     DatabaseReference refMyFavourites;
+    DatabaseReference refMyFavouritesData;
     GeoFire geoFireMyLocation;
     GeoFire geoFireMyFavourites;
     Marker mCurrent;
@@ -103,9 +109,48 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private void initializeMyFavourites() {
 
+        refMyFavouritesData = FirebaseDatabase.getInstance().getReference("MyFavouritesData");
+
+        Map<String, Favourite> favourites = new HashMap<>();
+        favourites.put("casa", new Favourite("casa", "questa è la mia casa"));
+        favourites.put("lavoro", new Favourite("lavoro", "questo è il mio lavoro"));
+
+        refMyFavouritesData.setValue(favourites);
+
+        refMyFavouritesData.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for(DataSnapshot myFavouriteSnapshot : dataSnapshot.getChildren()){
+                    Favourite favourite = myFavouriteSnapshot.getValue(Favourite.class);
+                    if("casa".equalsIgnoreCase(favourite.getType())){
+                        geoFireMyFavourites.setLocation("casa", new GeoLocation(41.928936, 12.524968),
+                                new GeoFire.CompletionListener() {
+                                    @Override
+                                    public void onComplete(String key, DatabaseError error) {
+                                    }
+                                });
+                    }
+                    else{
+                        geoFireMyFavourites.setLocation("lavoro", new GeoLocation(41.904039, 12.491666),
+                                new GeoFire.CompletionListener() {
+                                    @Override
+                                    public void onComplete(String key, DatabaseError error) {
+                                    }
+                                });
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                // Failed to read value
+                Log.w("EDMTDEV", "Failed to read value.", databaseError.toException());
+            }
+        });
+
         //Update to Firebase with myFavourite location casa
         //
-        geoFireMyFavourites.setLocation("casa", new GeoLocation(41.928936, 12.524968),
+        /*geoFireMyFavourites.setLocation("casa", new GeoLocation(41.928936, 12.524968),
             new GeoFire.CompletionListener() {
                 @Override
                 public void onComplete(String key, DatabaseError error) {
@@ -131,7 +176,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             .strokeWidth(5.0f)
                     );
                 }
-            });
+            });*/
     }
 
     private void setUpLocation(){
