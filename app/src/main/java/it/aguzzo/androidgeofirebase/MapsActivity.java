@@ -29,7 +29,6 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -39,9 +38,6 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBar;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks,
@@ -110,13 +106,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private void initializeMyFavourites() {
 
-
-
-        Map<String, Favourite> favourites = new HashMap<>();
-        favourites.put("casa", new Favourite("casa", "questa è la mia casa"));
-        favourites.put("lavoro", new Favourite("lavoro", "questo è il mio lavoro"));
-
-        refMyFavouritesData.setValue(favourites);
+        refMyFavouritesData.push().setValue(new Favourite("casa", "questa è la mia casa"));
+        refMyFavouritesData.push().setValue(new Favourite("lavoro", "questo è il mio lavoro"));
 
         refMyFavouritesData.addValueEventListener(new ValueEventListener() {
             @Override
@@ -124,7 +115,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 for(DataSnapshot myFavouriteSnapshot : dataSnapshot.getChildren()){
                     Favourite favourite = myFavouriteSnapshot.getValue(Favourite.class);
                     if("casa".equalsIgnoreCase(favourite.getType())){
-                        geoFireMyFavourites.setLocation("casa", new GeoLocation(41.928936, 12.524968),
+                        geoFireMyFavourites.setLocation(myFavouriteSnapshot.getKey(), new GeoLocation(41.928936, 12.524968),
                                 new GeoFire.CompletionListener() {
                                     @Override
                                     public void onComplete(String key, DatabaseError error) {
@@ -132,7 +123,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                 });
                     }
                     else{
-                        geoFireMyFavourites.setLocation("lavoro", new GeoLocation(41.904039, 12.491666),
+                        geoFireMyFavourites.setLocation(myFavouriteSnapshot.getKey(), new GeoLocation(41.904039, 12.491666),
                                 new GeoFire.CompletionListener() {
                                     @Override
                                     public void onComplete(String key, DatabaseError error) {
@@ -148,36 +139,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 Log.w("EDMTDEV", "Failed to read value.", databaseError.toException());
             }
         });
-
-        //Update to Firebase with myFavourite location casa
-        //
-        /*geoFireMyFavourites.setLocation("casa", new GeoLocation(41.928936, 12.524968),
-            new GeoFire.CompletionListener() {
-                @Override
-                public void onComplete(String key, DatabaseError error) {
-                    mMap.addCircle(new CircleOptions()
-                            .center(new LatLng(41.928936, 12.524968))
-                            .radius(500)
-                            .strokeColor(Color.GREEN)
-                            .fillColor(0x2200FF00)
-                            .strokeWidth(5.0f)
-                    );
-                }
-            });
-        //Update to Firebase with myFavourite location casa
-        geoFireMyFavourites.setLocation("lavoro", new GeoLocation(41.904039, 12.491666),
-            new GeoFire.CompletionListener() {
-                @Override
-                public void onComplete(String key, DatabaseError error) {
-                    mMap.addCircle(new CircleOptions()
-                            .center(new LatLng(41.904039, 12.491666))
-                            .radius(500)
-                            .strokeColor(Color.BLUE)
-                            .fillColor(0x220000FF)
-                            .strokeWidth(5.0f)
-                    );
-                }
-            });*/
     }
 
     private void setUpLocation(){
@@ -308,8 +269,29 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-        geoFireMyFavourites.getLocation("lavoro", new MyLocationCallback(geoFireMyLocation, refMyFavouritesData, "lavoro", BitmapDescriptorFactory.HUE_BLUE, this, mMap));
-        geoFireMyFavourites.getLocation("casa", new MyLocationCallback(geoFireMyLocation, refMyFavouritesData, "casa", BitmapDescriptorFactory.HUE_GREEN, this, mMap));
+
+        final MapsActivity thisMapsActivity = this;
+
+        refMyFavouritesData.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for(DataSnapshot myFavouriteSnapshot : dataSnapshot.getChildren()){
+                    Favourite favourite = myFavouriteSnapshot.getValue(Favourite.class);
+                    if("casa".equalsIgnoreCase(favourite.getType())){
+                        geoFireMyFavourites.getLocation(myFavouriteSnapshot.getKey(), new MyLocationCallback(geoFireMyLocation, favourite, BitmapDescriptorFactory.HUE_GREEN, thisMapsActivity, mMap));
+                    }
+                    else{
+                        geoFireMyFavourites. getLocation(myFavouriteSnapshot.getKey(), new MyLocationCallback(geoFireMyLocation, favourite, BitmapDescriptorFactory.HUE_BLUE, thisMapsActivity, mMap));
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                // Failed to read value
+                Log.w("EDMTDEV", "Failed to read value.", databaseError.toException());
+            }
+        });
     }
 
     @Override
