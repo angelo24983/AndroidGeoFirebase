@@ -29,6 +29,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -261,8 +262,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-        geoFireMyFavourites.getLocation("lavoro", new MyLocationCallback(geoFireMyLocation, "lavoro", Color.BLUE, 0x220000FF, this, mMap));
-        geoFireMyFavourites.getLocation("casa", new MyLocationCallback(geoFireMyLocation, "casa", Color.GREEN, 0x2200FF00, this, mMap));
+        geoFireMyFavourites.getLocation("lavoro", new MyLocationCallback(geoFireMyLocation, "lavoro", BitmapDescriptorFactory.HUE_BLUE, this, mMap));
+        geoFireMyFavourites.getLocation("casa", new MyLocationCallback(geoFireMyLocation, "casa", BitmapDescriptorFactory.HUE_GREEN, this, mMap));
     }
 
     @Override
