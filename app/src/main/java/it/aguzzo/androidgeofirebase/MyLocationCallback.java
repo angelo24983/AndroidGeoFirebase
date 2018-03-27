@@ -7,8 +7,14 @@ import com.firebase.geofire.LocationCallback;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.database.DatabaseError;
+
+import java.util.Map;
+
+import it.aguzzo.androidgeofirebase.info.CustomInfoWindowAdapter;
+import it.aguzzo.androidgeofirebase.info.DefaultInfoWindowAdapter;
 
 /**
  * Created by GZZNGL83P24A323Y on 23/03/2018.
@@ -20,28 +26,33 @@ public class MyLocationCallback implements LocationCallback {
 
     private Favourite favourite;
 
-    private float markerColor;
-
     private MapsActivity mapsActivity;
 
     private GoogleMap map;
 
-    public MyLocationCallback(GeoFire geoFireMyLocation, Favourite favourite, float markerColor, MapsActivity mapsActivity, GoogleMap map) {
+    private Map<String, GoogleMap.InfoWindowAdapter> adapterMap;
+
+    public MyLocationCallback(GeoFire geoFireMyLocation, Favourite favourite, MapsActivity mapsActivity, GoogleMap map, Map<String, GoogleMap.InfoWindowAdapter> adapterMap) {
         this.geoFireMyLocation = geoFireMyLocation;
         this.favourite = favourite;
-        this.markerColor = markerColor;
         this.mapsActivity = mapsActivity;
         this.map = map;
+        this.adapterMap = adapterMap;
     }
 
     @Override
     public void onLocationResult(String key, final GeoLocation location) {
 
-        map.addMarker(new MarkerOptions()
+        Marker marker = map.addMarker(new MarkerOptions()
             .position(new LatLng(location.latitude, location.longitude))
-            .icon(BitmapDescriptorFactory.defaultMarker(markerColor))
+            .icon(BitmapDescriptorFactory.defaultMarker(favourite.getMarkerColor()))
             .title(favourite.getType())
             .snippet(favourite.getDescription()));
+        marker.setTag(favourite);
+
+        adapterMap.put(marker.getId(), new CustomInfoWindowAdapter(mapsActivity));
+
+        marker.showInfoWindow();
 
         //Add GeoQueryLavoro here
         //0.5f => 500m

@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationManager;
 import android.provider.Settings;
@@ -39,6 +40,13 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBar;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import it.aguzzo.androidgeofirebase.info.CentralInfoWindowAdapter;
+import it.aguzzo.androidgeofirebase.info.CustomInfoWindowAdapter;
+import it.aguzzo.androidgeofirebase.info.DefaultInfoWindowAdapter;
+
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
@@ -65,6 +73,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     GeoFire geoFireMyFavourites;
     Marker mCurrent;
     VerticalSeekBar mSeekbar;
+
+    Map<String, GoogleMap.InfoWindowAdapter> adapterMap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -100,14 +110,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         refMyFavouritesData = FirebaseDatabase.getInstance().getReference("MyFavouritesData");
 
+        adapterMap = new HashMap<>();
+
         //initializeMyFavourites();
         setUpLocation();
     }
 
     private void initializeMyFavourites() {
 
-        refMyFavouritesData.push().setValue(new Favourite("casa", "questa è la mia casa"));
-        refMyFavouritesData.push().setValue(new Favourite("lavoro", "questo è il mio lavoro"));
+        refMyFavouritesData.push().setValue(new Favourite("casa", "questa è la mia casa", "via Tembien, 3", "sconfitti.jpg", BitmapDescriptorFactory.HUE_GREEN, Color.GREEN));
+        refMyFavouritesData.push().setValue(new Favourite("lavoro", "questo è il mio lavoro", "via Barberini, 38", "Fronte_principale.jpg", BitmapDescriptorFactory.HUE_BLUE, Color.BLUE));
 
         refMyFavouritesData.addValueEventListener(new ValueEventListener() {
             @Override
@@ -198,6 +210,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                                 .position(new LatLng(latitude, longitude))
                                                 .title("You"));
 
+                            adapterMap.put(mCurrent.getId(), new DefaultInfoWindowAdapter());
+
                             //Move Camera to this position
                             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(latitude, longitude), 12.0f));
                         }
@@ -272,17 +286,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         final MapsActivity thisMapsActivity = this;
 
+        CentralInfoWindowAdapter centralInfoWindowAdapter= new CentralInfoWindowAdapter(adapterMap);
+        mMap.setInfoWindowAdapter(centralInfoWindowAdapter);
+
         refMyFavouritesData.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 for(DataSnapshot myFavouriteSnapshot : dataSnapshot.getChildren()){
-                    Favourite favourite = myFavouriteSnapshot.getValue(Favourite.class);
-                    if("casa".equalsIgnoreCase(favourite.getType())){
-                        geoFireMyFavourites.getLocation(myFavouriteSnapshot.getKey(), new MyLocationCallback(geoFireMyLocation, favourite, BitmapDescriptorFactory.HUE_GREEN, thisMapsActivity, mMap));
-                    }
-                    else{
-                        geoFireMyFavourites. getLocation(myFavouriteSnapshot.getKey(), new MyLocationCallback(geoFireMyLocation, favourite, BitmapDescriptorFactory.HUE_BLUE, thisMapsActivity, mMap));
-                    }
+                    geoFireMyFavourites. getLocation(myFavouriteSnapshot.getKey(), new MyLocationCallback(geoFireMyLocation, myFavouriteSnapshot.getValue(Favourite.class), thisMapsActivity, mMap, adapterMap));
                 }
             }
 
