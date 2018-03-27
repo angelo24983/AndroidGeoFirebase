@@ -36,7 +36,7 @@ public class CustomInfoWindowAdapter implements GoogleMap.InfoWindowAdapter {
 
         TextView type_tv = view.findViewById(R.id.type);
         TextView description_tv = view.findViewById(R.id.description);
-        //ImageView image_v = view.findViewById(R.id.image);
+        ImageView image_v = view.findViewById(R.id.image);
         TextView address_tv = view.findViewById(R.id.address);
 
         type_tv.setText(marker.getTitle());
@@ -46,8 +46,8 @@ public class CustomInfoWindowAdapter implements GoogleMap.InfoWindowAdapter {
 
         description_tv.setTextColor(favourite.getTextColor());
 
-        //int imageId = context.getResources().getIdentifier(favourite.getImage().toLowerCase(), "drawable", context.getPackageName());
-        //image_v.setImageResource(imageId);
+        int imageId = context.getResources().getIdentifier(favourite.getImage().toLowerCase(), "drawable", context.getPackageName());
+        image_v.setImageResource(imageId);
 
         address_tv.setText(favourite.getAddress());
 

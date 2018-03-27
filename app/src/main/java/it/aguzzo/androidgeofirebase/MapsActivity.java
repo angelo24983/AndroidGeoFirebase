@@ -119,7 +119,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private void initializeMyFavourites() {
 
         refMyFavouritesData.push().setValue(new Favourite("casa", "questa è la mia casa", "via Tembien, 3", "sconfitti.jpg", BitmapDescriptorFactory.HUE_GREEN, Color.GREEN));
-        refMyFavouritesData.push().setValue(new Favourite("lavoro", "questo è il mio lavoro", "via Barberini, 38", "Fronte_principale.jpg", BitmapDescriptorFactory.HUE_BLUE, Color.BLUE));
+        refMyFavouritesData.push().setValue(new Favourite("lavoro", "questo è il mio lavoro", "via Barberini, 38", "fronte_principale.jpg", BitmapDescriptorFactory.HUE_BLUE, Color.BLUE));
 
         refMyFavouritesData.addValueEventListener(new ValueEventListener() {
             @Override
