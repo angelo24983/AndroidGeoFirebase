@@ -38,14 +38,15 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 import com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBar;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import it.aguzzo.androidgeofirebase.info.CentralInfoWindowAdapter;
-import it.aguzzo.androidgeofirebase.info.CustomInfoWindowAdapter;
-import it.aguzzo.androidgeofirebase.info.DefaultInfoWindowAdapter;
+import it.aguzzo.androidgeofirebase.infowindow.CentralInfoWindowAdapter;
+import it.aguzzo.androidgeofirebase.infowindow.DefaultInfoWindowAdapter;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks,
@@ -69,6 +70,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     DatabaseReference refMyLocation;
     DatabaseReference refMyFavourites;
     DatabaseReference refMyFavouritesData;
+    StorageReference myStorageRef;
     GeoFire geoFireMyLocation;
     GeoFire geoFireMyFavourites;
     Marker mCurrent;
@@ -109,6 +111,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         geoFireMyFavourites = new GeoFire(refMyFavourites);
 
         refMyFavouritesData = FirebaseDatabase.getInstance().getReference("MyFavouritesData");
+
+         myStorageRef = FirebaseStorage.getInstance().getReference();
 
         adapterMap = new HashMap<>();
 
@@ -293,7 +297,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 for(DataSnapshot myFavouriteSnapshot : dataSnapshot.getChildren()){
-                    geoFireMyFavourites. getLocation(myFavouriteSnapshot.getKey(), new MyLocationCallback(geoFireMyLocation, myFavouriteSnapshot.getValue(Favourite.class), thisMapsActivity, mMap, adapterMap));
+                    geoFireMyFavourites. getLocation(myFavouriteSnapshot.getKey(), new MyLocationCallback(geoFireMyLocation, myStorageRef, myFavouriteSnapshot.getValue(Favourite.class), thisMapsActivity, mMap, adapterMap));
                 }
             }
 

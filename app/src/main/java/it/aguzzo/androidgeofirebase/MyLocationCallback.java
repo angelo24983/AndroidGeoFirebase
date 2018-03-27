@@ -10,11 +10,11 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.database.DatabaseError;
+import com.google.firebase.storage.StorageReference;
 
 import java.util.Map;
 
-import it.aguzzo.androidgeofirebase.info.CustomInfoWindowAdapter;
-import it.aguzzo.androidgeofirebase.info.DefaultInfoWindowAdapter;
+import it.aguzzo.androidgeofirebase.infowindow.CustomInfoWindowAdapter;
 
 /**
  * Created by GZZNGL83P24A323Y on 23/03/2018.
@@ -24,6 +24,8 @@ public class MyLocationCallback implements LocationCallback {
 
     private GeoFire geoFireMyLocation;
 
+    private StorageReference myStorageReference;
+
     private Favourite favourite;
 
     private MapsActivity mapsActivity;
@@ -32,8 +34,9 @@ public class MyLocationCallback implements LocationCallback {
 
     private Map<String, GoogleMap.InfoWindowAdapter> adapterMap;
 
-    public MyLocationCallback(GeoFire geoFireMyLocation, Favourite favourite, MapsActivity mapsActivity, GoogleMap map, Map<String, GoogleMap.InfoWindowAdapter> adapterMap) {
+    public MyLocationCallback(GeoFire geoFireMyLocation, StorageReference storageReference, Favourite favourite, MapsActivity mapsActivity, GoogleMap map, Map<String, GoogleMap.InfoWindowAdapter> adapterMap) {
         this.geoFireMyLocation = geoFireMyLocation;
+        this.myStorageReference = storageReference;
         this.favourite = favourite;
         this.mapsActivity = mapsActivity;
         this.map = map;
@@ -50,7 +53,7 @@ public class MyLocationCallback implements LocationCallback {
             .snippet(favourite.getDescription()));
         marker.setTag(favourite);
 
-        adapterMap.put(marker.getId(), new CustomInfoWindowAdapter(mapsActivity));
+        adapterMap.put(marker.getId(), new CustomInfoWindowAdapter(mapsActivity, myStorageReference));
 
         marker.showInfoWindow();
 
