@@ -1,4 +1,4 @@
-package it.aguzzo.androidgeofirebase;
+package it.aguzzo.androidgeofirebase.model;
 
 /**
  * Created by GZZNGL83P24A323Y on 26/03/2018.

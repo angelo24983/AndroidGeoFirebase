@@ -11,9 +11,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.DataSource;
-import com.bumptech.glide.load.engine.GlideException;
-import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.SimpleTarget;
 import com.bumptech.glide.request.target.Target;
 import com.bumptech.glide.request.transition.Transition;
@@ -24,8 +21,7 @@ import com.google.firebase.storage.StorageReference;
 import java.util.HashMap;
 import java.util.Map;
 
-import it.aguzzo.androidgeofirebase.Favourite;
-import it.aguzzo.androidgeofirebase.GlideApp;
+import it.aguzzo.androidgeofirebase.model.Favourite;
 import it.aguzzo.androidgeofirebase.R;
 
 /**

@@ -1,4 +1,4 @@
-package it.aguzzo.androidgeofirebase;
+package it.aguzzo.androidgeofirebase.notification;
 
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -12,6 +12,9 @@ import com.firebase.geofire.GeoQueryEventListener;
 import com.google.firebase.database.DatabaseError;
 
 import java.util.Random;
+
+import it.aguzzo.androidgeofirebase.MapsActivity;
+import it.aguzzo.androidgeofirebase.R;
 
 /**
  * Created by GZZNGL83P24A323Y on 23/03/2018.

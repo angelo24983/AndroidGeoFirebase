@@ -12,9 +12,12 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.storage.StorageReference;
 
+import java.util.List;
 import java.util.Map;
 
 import it.aguzzo.androidgeofirebase.infowindow.CustomInfoWindowAdapter;
+import it.aguzzo.androidgeofirebase.model.Favourite;
+import it.aguzzo.androidgeofirebase.notification.MyFavouriteEventListener;
 
 /**
  * Created by GZZNGL83P24A323Y on 23/03/2018.
@@ -34,13 +37,20 @@ public class MyLocationCallback implements LocationCallback {
 
     private Map<String, GoogleMap.InfoWindowAdapter> adapterMap;
 
-    public MyLocationCallback(GeoFire geoFireMyLocation, StorageReference storageReference, Favourite favourite, MapsActivity mapsActivity, GoogleMap map, Map<String, GoogleMap.InfoWindowAdapter> adapterMap) {
+    private List<Marker> listMarkerCasa;
+
+    private List<Marker> listMarkerLavoro;
+
+    public MyLocationCallback(GeoFire geoFireMyLocation, StorageReference storageReference, Favourite favourite, MapsActivity mapsActivity,
+                              GoogleMap map, Map<String, GoogleMap.InfoWindowAdapter> adapterMap, List<Marker> listMarkerCasa, List<Marker> listMarkerLavoro) {
         this.geoFireMyLocation = geoFireMyLocation;
         this.myStorageReference = storageReference;
         this.favourite = favourite;
         this.mapsActivity = mapsActivity;
         this.map = map;
         this.adapterMap = adapterMap;
+        this.listMarkerCasa = listMarkerCasa;
+        this.listMarkerLavoro = listMarkerLavoro;
     }
 
     @Override
@@ -55,7 +65,15 @@ public class MyLocationCallback implements LocationCallback {
 
         adapterMap.put(marker.getId(), new CustomInfoWindowAdapter(mapsActivity, myStorageReference));
 
-        marker.showInfoWindow();
+        if(favourite.getType().equalsIgnoreCase("casa")){
+            listMarkerCasa.add(marker);
+        }
+
+        if(favourite.getType().equalsIgnoreCase("lavoro")){
+            listMarkerLavoro.add(marker);
+        }
+
+        //marker.showInfoWindow();
 
         //Add GeoQueryLavoro here
         //0.5f => 500m

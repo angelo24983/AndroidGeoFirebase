@@ -11,9 +11,12 @@ import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.widget.SeekBar;
 import android.widget.Toast;
 
@@ -42,13 +45,16 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBar;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import it.aguzzo.androidgeofirebase.infowindow.CentralInfoWindowAdapter;
 import it.aguzzo.androidgeofirebase.infowindow.DefaultInfoWindowAdapter;
+import it.aguzzo.androidgeofirebase.model.Favourite;
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback,
+public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
         LocationListener {
@@ -74,9 +80,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     GeoFire geoFireMyLocation;
     GeoFire geoFireMyFavourites;
     Marker mCurrent;
+    List<Marker> mListMarkerCasa;
+    List<Marker> mListMarkerLavoro;
     VerticalSeekBar mSeekbar;
+    Menu mOptionsMenu;
 
     Map<String, GoogleMap.InfoWindowAdapter> adapterMap;
+
+    boolean showCasa;
+    boolean showLavoro;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -115,6 +127,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
          myStorageRef = FirebaseStorage.getInstance().getReference();
 
         adapterMap = new HashMap<>();
+        mListMarkerCasa = new ArrayList<>();
+        mListMarkerLavoro = new ArrayList<>();
 
         //initializeMyFavourites();
         setUpLocation();
@@ -297,7 +311,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 for(DataSnapshot myFavouriteSnapshot : dataSnapshot.getChildren()){
-                    geoFireMyFavourites. getLocation(myFavouriteSnapshot.getKey(), new MyLocationCallback(geoFireMyLocation, myStorageRef, myFavouriteSnapshot.getValue(Favourite.class), thisMapsActivity, mMap, adapterMap));
+                    geoFireMyFavourites. getLocation(myFavouriteSnapshot.getKey(), new MyLocationCallback(geoFireMyLocation, myStorageRef, myFavouriteSnapshot.getValue(Favourite.class),
+                            thisMapsActivity, mMap, adapterMap, mListMarkerCasa, mListMarkerLavoro));
                 }
             }
 
@@ -337,5 +352,44 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        mOptionsMenu = menu;
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.map_menu, menu);
+
+        showCasa = true;
+        showLavoro = true;
+
+        menu.findItem(R.id.itemMapMenuCasa).setChecked(showCasa);
+        menu.findItem(R.id.itemMapMenuLavoro).setChecked(showLavoro);
+
+
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(final MenuItem item) {
+
+        switch (item.getItemId()) {
+            case R.id.itemMapMenuCasa:
+                showCasa = !showCasa;
+                mOptionsMenu.findItem(R.id.itemMapMenuCasa).setChecked(showCasa);
+                for (Marker marker : mListMarkerCasa) {
+                    marker.setVisible(showCasa);
+                }
+                return true;
+            case R.id.itemMapMenuLavoro:
+                showLavoro = !showLavoro;
+                mOptionsMenu.findItem(R.id.itemMapMenuLavoro).setChecked(showLavoro);
+                for (Marker marker : mListMarkerLavoro) {
+                    marker.setVisible(showLavoro);
+                }
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 }

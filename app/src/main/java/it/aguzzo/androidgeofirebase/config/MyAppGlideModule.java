@@ -1,4 +1,4 @@
-package it.aguzzo.androidgeofirebase;
+package it.aguzzo.androidgeofirebase.config;
 
 import android.content.Context;
 
